@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "sM1ek5Y1u/4=",
+  "success": true,
+  "projectFilePath": "/Users/fek1r/Oxygen-Sensor-Project/backend/backend.csproj",
+  "expectedPackageFiles": [
+    "/Users/fek1r/.nuget/packages/microsoft.aspnetcore.openapi/9.0.8/microsoft.aspnetcore.openapi.9.0.8.nupkg.sha512",
+    "/Users/fek1r/.nuget/packages/microsoft.openapi/1.6.17/microsoft.openapi.1.6.17.nupkg.sha512"
+  ],
+  "logs": []
+}
