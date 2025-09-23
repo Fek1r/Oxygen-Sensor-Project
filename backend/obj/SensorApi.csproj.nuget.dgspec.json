@@ -1,15 +1,15 @@
 {
   "format": 1,
   "restore": {
-    "/Users/fek1r/Oxygen-Sensor-Project/backend/backend.csproj": {}
+    "/Users/fek1r/Oxygen-Sensor-Project/backend/SensorApi.csproj": {}
   },
   "projects": {
-    "/Users/fek1r/Oxygen-Sensor-Project/backend/backend.csproj": {
+    "/Users/fek1r/Oxygen-Sensor-Project/backend/SensorApi.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/fek1r/Oxygen-Sensor-Project/backend/backend.csproj",
-        "projectName": "backend",
-        "projectPath": "/Users/fek1r/Oxygen-Sensor-Project/backend/backend.csproj",
+        "projectUniqueName": "/Users/fek1r/Oxygen-Sensor-Project/backend/SensorApi.csproj",
+        "projectName": "SensorApi",
+        "projectPath": "/Users/fek1r/Oxygen-Sensor-Project/backend/SensorApi.csproj",
         "packagesPath": "/Users/fek1r/.nuget/packages/",
         "outputPath": "/Users/fek1r/Oxygen-Sensor-Project/backend/obj/",
         "projectStyle": "PackageReference",
@@ -47,6 +47,10 @@
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
               "version": "[9.0.8, )"
+            },
+            "Swashbuckle.AspNetCore": {
+              "target": "Package",
+              "version": "[9.0.4, )"
             }
           },
           "imports": [
