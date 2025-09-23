@@ -1,5 +1,53 @@
 # dependencies
-/frontend 
+
+# Build output
+/bin/
+/obj/
+/out/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio / Rider / VS Code
+.vs/
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# NuGet packages
+*.nupkg
+packages/
+.nuget/
+
+# EF Core Migrations history
+Migrations/
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# ASP.NET temporary files
+*.db
+*.sqlite
+*.db-shm
+*.db-wal
+
+# Publish output
+publish/
+wwwroot/
+*.publishsettings
+
+
 /node_modules
 
 # build
