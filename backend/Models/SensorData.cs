@@ -1,15 +1,23 @@
-using System.Text.Json.Serialization;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace SensorApi.Models;
-
-public class SensorData
+namespace SensorApi.Models
 {
-    [JsonPropertyName("MAC")]
-    public string MAC { get; set; }
+    [Table("sensors")]
+    public class SensorData
+    {
+        [Key]
+        [Column("id")]
+        public int Id { get; set; }
 
-    [JsonPropertyName("temp")]
-    public float Temperature { get; set; }
+        [Required]
+        [Column("mac")]
+        public string MAC { get; set; } = string.Empty;
 
-    [JsonPropertyName("hum")]
-    public float Humidity { get; set; }
+        [Column("temperature")]
+        public float Temperature { get; set; }
+
+        [Column("humidity")]
+        public float Humidity { get; set; }
+    }
 }
