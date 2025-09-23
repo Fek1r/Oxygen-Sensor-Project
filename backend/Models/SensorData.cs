@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace SensorApi.Models
 {
@@ -12,12 +13,15 @@ namespace SensorApi.Models
 
         [Required]
         [Column("mac")]
+        [JsonPropertyName("MAC")]
         public string MAC { get; set; } = string.Empty;
 
         [Column("temperature")]
+        [JsonPropertyName("temp")]
         public float Temperature { get; set; }
 
         [Column("humidity")]
+        [JsonPropertyName("hum")]
         public float Humidity { get; set; }
     }
 }
