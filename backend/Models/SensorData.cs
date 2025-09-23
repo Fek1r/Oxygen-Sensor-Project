@@ -1,16 +1,15 @@
 using System.Text.Json.Serialization;
 
-namespace SensorApi.Models
+namespace SensorApi.Models;
+
+public class SensorData
 {
-    public class SensorData
-    {
-        [JsonPropertyName("MAC")]
-        public required string MAC { get; set; }
+    [JsonPropertyName("MAC")]
+    public string MAC { get; set; }
 
-        [JsonPropertyName("Temperature")]
-        public required float Temperature { get; set; }
+    [JsonPropertyName("temp")]
+    public float Temperature { get; set; }
 
-        [JsonPropertyName("Humidity")]
-        public required float Humidity { get; set; }
-    }
+    [JsonPropertyName("hum")]
+    public float Humidity { get; set; }
 }

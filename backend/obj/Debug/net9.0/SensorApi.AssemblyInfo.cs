@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SensorApi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f3ca500474403f0c16048cbe1cc685c28c7345ae")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1808c8e40ab99e8c6597d73adee05424a71e0a8a")]
 [assembly: System.Reflection.AssemblyProductAttribute("SensorApi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SensorApi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
