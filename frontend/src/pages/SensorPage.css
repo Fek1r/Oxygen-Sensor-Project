@@ -1,0 +1,21 @@
+.sensor-page {
+  flex: 1;
+  padding: 40px;
+  background: #f0f9ff;
+}
+
+.chart-container {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.latest-data {
+  background: #e6f7ff;
+  border: 1px solid #90e0ef;
+  border-radius: 12px;
+  padding: 20px;
+  font-size: 16px;
+}

@@ -1,0 +1,30 @@
+.header {
+  width: 220px;
+  background: linear-gradient(180deg, #0077b6, #90e0ef);
+  color: white;
+  padding: 30px 20px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 0 20px 20px 0;
+}
+
+.logo {
+  margin-bottom: 40px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.header ul {
+  list-style: none;
+  padding: 0;
+}
+
+.header li {
+  margin: 15px 0;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.header li:hover {
+  color: #caf0f8;
+}

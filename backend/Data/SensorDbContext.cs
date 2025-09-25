@@ -1,4 +1,3 @@
-
 using Microsoft.EntityFrameworkCore;
 using SensorApi.Models;
 
@@ -6,16 +5,32 @@ namespace SensorApi.Data
 {
     public class SensorDbContext : DbContext
     {
-        public SensorDbContext(DbContextOptions<SensorDbContext> options) : base(options) { }
+        public SensorDbContext(DbContextOptions<SensorDbContext> options)
+            : base(options)
+        {
+        }
 
-        public DbSet<SensorData> SensorReadings { get; set; }
+        public DbSet<SensorData> SensorData { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<SensorData>().ToTable("sensors");
+            base.OnModelCreating(modelBuilder);
+            
+            modelBuilder.Entity<SensorData>(entity =>
+            {
+                entity.ToTable("sensors");
+                entity.HasKey(e => e.Id);
+                
+                // ✅ Исправляем названия колонок, чтобы совпадали с JsonPropertyName
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.MAC).HasColumnName("MAC");           // было "mac"
+                entity.Property(e => e.Temperature).HasColumnName("temp");   // было "temperature" 
+                entity.Property(e => e.Humidity).HasColumnName("hum");      // было "humidity"
+            });
         }
     }
 }
+
 
 
 // CREATE TABLE sensors (
