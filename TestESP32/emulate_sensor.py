@@ -4,7 +4,7 @@ import time
 import json
 
 # Адрес твоего backend-сервера
-SERVER_URL = "http://localhost:5245/api/sensor"  # ⚠️ замени путь на твой контроллер
+SERVER_URL = "http://localhost:5245/sensor/receive"  # ⚠️ замени путь на твой контроллер
 
 def generate_sensor_data():
     """Генерируем случайные данные, имитирующие датчик ESP32"""

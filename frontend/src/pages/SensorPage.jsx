@@ -41,7 +41,7 @@ const SensorPage = () => {
     };
 
     fetchData();
-    const interval = setInterval(fetchData, 20000); // обновление каждые 20 секунд
+    const interval = setInterval(fetchData, 2000); // обновление каждые 2 секунд
     return () => clearInterval(interval);
   }, []);
 
