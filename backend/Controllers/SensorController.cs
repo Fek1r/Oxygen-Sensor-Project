@@ -25,14 +25,15 @@ namespace SensorApi.Controllers
             {
                 _db.SensorData.Add(data);
                 _db.SaveChanges();
-                
+                        
                 return Ok(new { 
                     message = "Данные получены", 
                     data = new {
                         id = data.Id,
                         mac = data.MAC,
-                        temp = data.Temperature,  // используем правильные имена
-                        hum = data.Humidity
+                        temp = data.Temperature,
+                        hum = data.Humidity,
+                        co2 = data.CO2
                     }
                 });
             }
@@ -42,29 +43,30 @@ namespace SensorApi.Controllers
             }
         }
 
+        // ✅ НОВЫЙ эндпоинт для получения последних данных
         [HttpGet("latest")]
         public IActionResult GetLatest()
         {
             try 
             {
-                Console.WriteLine("🔍 Запрос на получение последних данных...");
-                
                 var latest = _db.SensorData
                     .OrderByDescending(d => d.Id)
+                    .Select(d => new {
+                        id = d.Id,
+                        mac = d.MAC,  // ✅ возвращаем как "mac" (маленькими)
+                        temp = d.Temperature,
+                        hum = d.Humidity,
+                        co2 = d.CO2
+                    })
                     .FirstOrDefault();
 
                 if (latest == null)
-                {
-                    Console.WriteLine("❌ Данных в базе нет");
-                    return NotFound("Данных пока нет");
-                }
+                    return NotFound("Нет данных в базе");
 
-                Console.WriteLine($"✅ Найдены данные: ID={latest.Id}, MAC={latest.MAC}, Temp={latest.Temperature}, Hum={latest.Humidity}");
                 return Ok(latest);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"💥 Ошибка: {ex.Message}");
                 return StatusCode(500, $"Ошибка получения данных: {ex.Message}");
             }
         }
@@ -79,9 +81,10 @@ namespace SensorApi.Controllers
                     .Take(50)
                     .Select(d => new {
                         id = d.Id,
-                        mac = d.MAC,
+                        MAC = d.MAC,
                         temp = d.Temperature,
-                        hum = d.Humidity
+                        hum = d.Humidity,
+                        co2 = d.CO2
                     })
                     .ToList();
 

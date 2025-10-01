@@ -14,10 +14,10 @@ namespace SensorApi.Services
 
         public void ProcessData(SensorData data)
         {
-            Console.WriteLine($"MAC: {data.MAC}, Temp: {data.Temperature}, Hum: {data.Humidity}");
+            Console.WriteLine($"MAC: {data.MAC}, Temp: {data.Temperature}, Hum: {data.Humidity}, CO2: {data.CO2}");
             Console.WriteLine("Saving to DB...");
 
-            _context.SensorData.Add(data); // ✅ правильное имя DbSet
+            _context.SensorData.Add(data);
             var result = _context.SaveChanges();
 
             Console.WriteLine($"Rows affected: {result}");

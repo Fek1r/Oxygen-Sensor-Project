@@ -23,5 +23,9 @@ namespace SensorApi.Models
         [Column("humidity")]
         [JsonPropertyName("hum")]
         public float Humidity { get; set; }
+
+        [Column("co2")]
+        [JsonPropertyName("co2")]
+        public float CO2 { get; set; }  // ✅ новое поле
     }
 }
