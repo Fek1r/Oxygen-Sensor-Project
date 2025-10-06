@@ -9,11 +9,13 @@
 #include <SensirionI2cScd4x.h>
 
 // WiFi настройки
-const char* ssid = "2_2.4G";
-const char* password = "10021711";
+// const char* ssid = "2_2.4G";
+// const char* password = "10021711";
+
+
 
 // Адрес сервера
-const char* serverUrl = "http://192.168.2.49:5245/sensor/receive";
+const char* serverUrl = "http://10.51.0.120:5245/sensor/receive";
 
 SensirionI2cScd4x sensor;
 int16_t error;
@@ -108,6 +110,7 @@ void loop() {
   // Создаём JSON
   StaticJsonDocument<256> doc;
   doc["MAC"] = mac;
+  doc["name"] = "ESP32 - #1";
   doc["temp"] = temperature;
   doc["hum"] = humidity;
   doc["co2"] = co2;   // ✅ Добавлено CO₂

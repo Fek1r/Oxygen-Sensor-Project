@@ -7,6 +7,8 @@ using System.Net.NetworkInformation;
 
 var builder = WebApplication.CreateBuilder(args);
 
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 // строка подключения к PostgreSQL
 var connectionString = builder.Configuration.GetConnectionString("PostgresConnection")
     ?? "Host=localhost;Port=5433;Database=postgres;Username=postgres;Password=10021711";

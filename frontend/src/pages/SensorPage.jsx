@@ -19,7 +19,7 @@ const SensorPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch("http://192.168.2.49:5245/sensor/latest");
+        const res = await fetch("http://10.51.0.120:5245/sensor/latest");
         if (!res.ok) throw new Error("Ошибка: " + res.status);
         const json = await res.json();
 

@@ -13,6 +13,8 @@ function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/sensor" element={<SensorPage />} />
+            {/* ✅ Используем тот же SensorPage, но с параметром mac */}
+            <Route path="/sensor/:mac" element={<SensorPage />} />
           </Routes>
         </div>
       </div>

@@ -19,3 +19,21 @@
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 20px;
 }
+
+.section-title {
+  margin-top: 30px;
+  margin-bottom: 15px;
+  color: #0077b6;
+  font-size: 1.3em;
+}
+
+.section-title.offline-section {
+  color: #666;
+}
+
+.no-devices {
+  text-align: center;
+  color: #999;
+  font-style: italic;
+  margin: 40px 0;
+}

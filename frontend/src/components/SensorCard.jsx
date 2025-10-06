@@ -1,15 +1,28 @@
 import React from "react";
 import "./SensorCard.css";
 
-const SensorCard = ({ title, description, onSelect }) => {
+const SensorCard = ({ title, description, extraInfo, isOnline, onSelect }) => {
   return (
-    <div className="sensor-card">
-      <div className="sensor-img">
-        <span role="img" aria-label="sensor">🩺</span>
+    <div 
+      className={`sensor-card ${!isOnline ? 'offline' : ''}`} 
+      onClick={isOnline ? onSelect : null}
+      style={{ cursor: isOnline ? 'pointer' : 'not-allowed' }}
+    >
+      <div className="card-header">
+        <h3>{title}</h3>
+        <span className={`status-badge ${isOnline ? 'online' : 'offline'}`}>
+          {isOnline ? '🟢 Онлайн' : '🔴 Оффлайн'}
+        </span>
       </div>
-      <h3>{title}</h3>
-      <p>{description}</p>
-      <button onClick={onSelect}>Выбрать</button>
+      <p className="description">{description}</p>
+      {extraInfo && <p className="extra-info">{extraInfo}</p>}
+      {isOnline ? (
+        <button className="connect-button">Подключить</button>
+      ) : (
+        <button className="connect-button disabled" disabled>
+          Недоступно
+        </button>
+      )}
     </div>
   );
 };
