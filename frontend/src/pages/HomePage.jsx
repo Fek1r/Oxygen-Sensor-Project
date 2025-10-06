@@ -9,15 +9,25 @@ const HomePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Загрузка списка устройств с сервера
+  // baseUrl из .env
+  const baseUrl = process.env.REACT_APP_API_URL;
+
   useEffect(() => {
     const fetchDevices = async () => {
       try {
-        const response = await fetch("http://10.51.0.120:5245/sensor/devices");
-        if (!response.ok) {
-          throw new Error("Ошибка загрузки устройств");
+        const response = await fetch(`${baseUrl}/sensor/devices`);
+        const text = await response.text();
+
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (err) {
+          console.error("Ошибка парсинга JSON:", text);
+          setError("Сервер вернул не JSON");
+          setLoading(false);
+          return;
         }
-        const data = await response.json();
+
         setDevices(data);
         setError(null);
       } catch (err) {
@@ -28,11 +38,11 @@ const HomePage = () => {
     };
 
     fetchDevices();
-    
-    // ✅ Обновление каждые 10 секунд для актуального статуса
+
+    // Обновление каждые 10 секунд
     const interval = setInterval(fetchDevices, 10000);
     return () => clearInterval(interval);
-  }, []);
+  }, [baseUrl]);
 
   if (loading) {
     return (
@@ -51,7 +61,6 @@ const HomePage = () => {
     );
   }
 
-  // ✅ Разделяем на онлайн и оффлайн устройства
   const onlineDevices = devices.filter(d => d.isOnline);
   const offlineDevices = devices.filter(d => !d.isOnline);
 
@@ -59,14 +68,13 @@ const HomePage = () => {
     <div className="homepage">
       <h1>Добро пожаловать!</h1>
       <p>Здесь вы можете выбрать датчик для мониторинга.</p>
-      
+
       {devices.length === 0 ? (
         <p className="no-devices">
           Устройства не найдены. Убедитесь, что ESP32 отправляет данные на сервер.
         </p>
       ) : (
         <>
-          {/* ✅ Онлайн устройства */}
           {onlineDevices.length > 0 && (
             <>
               <h2 className="section-title">
@@ -74,20 +82,19 @@ const HomePage = () => {
               </h2>
               <div className="sensor-list">
                 {onlineDevices.map((device) => (
-                  <SensorCard 
+                  <SensorCard
                     key={device.mac}
                     title={device.name || `Устройство ${device.mac}`}
                     description={`MAC: ${device.mac}`}
                     extraInfo={`CO₂: ${device.co2} ppm | Темп: ${device.temp.toFixed(1)}°C`}
                     isOnline={true}
-                    onSelect={() => navigate(`/sensor/${device.mac}`)} 
+                    onSelect={() => navigate(`/sensor/${device.mac}`)}
                   />
                 ))}
               </div>
             </>
           )}
 
-          {/* ✅ Оффлайн устройства */}
           {offlineDevices.length > 0 && (
             <>
               <h2 className="section-title offline-section">
@@ -95,13 +102,13 @@ const HomePage = () => {
               </h2>
               <div className="sensor-list">
                 {offlineDevices.map((device) => (
-                  <SensorCard 
+                  <SensorCard
                     key={device.mac}
                     title={device.name || `Устройство ${device.mac}`}
                     description={`MAC: ${device.mac}`}
                     extraInfo={`Последние данные: CO₂: ${device.co2} ppm`}
                     isOnline={false}
-                    onSelect={() => navigate(`/sensor/${device.mac}`)} 
+                    onSelect={() => navigate(`/sensor/${device.mac}`)}
                   />
                 ))}
               </div>
