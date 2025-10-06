@@ -8,14 +8,29 @@
 #include <Wire.h>
 #include <SensirionI2cScd4x.h>
 
-// WiFi настройки
+// WiFi Home
 // const char* ssid = "2_2.4G";
 // const char* password = "10021711";
+
+//WiFi Victoria
+// const char* ssid = "VICTORIA-WiFi";
+// const char* password = "Students@VICTORIA!";
+
+//Wifi Phone
+// const char* ssid = "iPhone(Sergejs)";
+// const char* password = "10021711";
+
+
+//WiFi Caffeine
+const char* ssid = "In Coffee We Trust";
+const char* password = "";
+
+
 
 
 
 // Адрес сервера
-const char* serverUrl = "http://10.51.0.120:5245/sensor/receive";
+const char* serverUrl = "http://192.168.231.18:5245/sensor/receive";
 
 SensirionI2cScd4x sensor;
 int16_t error;
