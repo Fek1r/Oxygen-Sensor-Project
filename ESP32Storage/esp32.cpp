@@ -1,40 +1,27 @@
-//Here I just save the code from the Arduino IDE so that other people can look at it and so that 
-// I always know where to find the code.
-
-
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 #include <Wire.h>
 #include <SensirionI2cScd4x.h>
 
-// WiFi Home
-// const char* ssid = "2_2.4G";
-// const char* password = "10021711";
-
-//WiFi Victoria
-// const char* ssid = "VICTORIA-WiFi";
-// const char* password = "Students@VICTORIA!";
-
-//WiFi Caffeine
-// const char* ssid = "In Coffee We Trust";
-// const char* password = "";
-
 //Wifi
 const char* ssid = "Dark Network";
 const char* password = "111alah666!";
 
-
-
 // Адрес сервера
 const char* serverUrl = "http://10.221.84.53:5245/sensor/receive";
 
+// I2C пины
+const int I2C_SDA = 21;
+const int I2C_SCL = 22;
+
 // LED пины
-const int LED_GREEN = 12;   // Зеленый: 400-1000 ppm CO2
-const int LED_YELLOW = 14;  // Желтый: 1001-1400 ppm CO2
-const int LED_RED = 26;     // Красный: 1401-10000 ppm CO2
-const int LED_WIFI = 4;     // Синий: статус WiFi
-const int LED_SERVER = 18;  // Синий: статус подключения к серверу
+const int LED_GREEN = 12;
+const int LED_YELLOW = 14;
+const int LED_RED = 26;
+const int LED_WIFI = 4;
+const int LED_SERVER = 18;
+const int BUZZER = 33;
 
 SensirionI2cScd4x sensor;
 int16_t error;
@@ -45,31 +32,45 @@ void setupLEDs() {
   pinMode(LED_RED, OUTPUT);
   pinMode(LED_WIFI, OUTPUT);
   pinMode(LED_SERVER, OUTPUT);
+  pinMode(BUZZER, OUTPUT);
   
-  // Выключаем все LED при старте
   digitalWrite(LED_GREEN, LOW);
   digitalWrite(LED_YELLOW, LOW);
   digitalWrite(LED_RED, LOW);
   digitalWrite(LED_WIFI, LOW);
   digitalWrite(LED_SERVER, LOW);
+  digitalWrite(BUZZER, LOW);
+  
+  Serial.println("✓ LED и пикалка инициализированы");
 }
 
 void updateCO2LEDs(uint16_t co2) {
-  // Выключаем все LED загрязнения
+  static unsigned long lastBeepTime = 0;   // время последнего срабатывания
+  static bool buzzerActive = false;
+
   digitalWrite(LED_GREEN, LOW);
   digitalWrite(LED_YELLOW, LOW);
   digitalWrite(LED_RED, LOW);
+  digitalWrite(BUZZER, LOW);  // Сначала выключаем
   
-  // Включаем соответствующий LED
-  if (co2 >= 400 && co2 <= 1000) {
+  if (co2 >= 400 && co2 <= 1099) {
     digitalWrite(LED_GREEN, HIGH);
-    Serial.println("LED: Зеленый (низкое загрязнение)");
-  } else if (co2 >= 1001 && co2 <= 1400) {
+    Serial.println("🟢 LED: Зеленый (низкое загрязнение)");
+  } else if (co2 >= 1100 && co2 <= 1600) {
     digitalWrite(LED_YELLOW, HIGH);
-    Serial.println("LED: Желтый (среднее загрязнение)");
-  } else if (co2 >= 1401 && co2 <= 10000) {
+    Serial.println("🟡 LED: Желтый (среднее загрязнение)");
+  } else if (co2 >= 1601) {
     digitalWrite(LED_RED, HIGH);
-    Serial.println("LED: Красный (высокое загрязнение)");
+    digitalWrite(BUZZER, HIGH);  // ВКЛЮЧАЕМ ПИКАЛКУ!
+    Serial.println("🔴 LED: Красный (высокое загрязнение)");
+    Serial.println("🔊 ПИКАЛКА ВКЛЮЧЕНА! CO2 >= 1601 ppm");
+  }
+
+
+  if (buzzerActive && millis() - lastBeepTime >= 1000) {
+    digitalWrite(BUZZER, LOW);
+    buzzerActive = false;
+    Serial.println("🔇 ПИКАЛКА ВЫКЛЮЧЕНА после 1 секунд");
   }
 }
 
@@ -77,14 +78,10 @@ void connectWiFi() {
   Serial.print("Подключение к WiFi: ");
   Serial.println(ssid);
   
-  digitalWrite(LED_WIFI, LOW);  // Выключаем LED WiFi
-  
+  digitalWrite(LED_WIFI, LOW);
   WiFi.disconnect(true);
   delay(1000);
-  WiFi.mode(WIFI_OFF);
-  delay(1000);
   WiFi.mode(WIFI_STA);
-  delay(1000);
   WiFi.begin(ssid, password);
   
   int attempts = 0;
@@ -96,118 +93,165 @@ void connectWiFi() {
   Serial.println();
   
   if (WiFi.status() == WL_CONNECTED) {
-    digitalWrite(LED_WIFI, HIGH);  // Включаем LED WiFi
-    Serial.println(">>> WiFi успешно подключен! <<<");
+    digitalWrite(LED_WIFI, HIGH);
+    Serial.println("✓ WiFi подключен!");
     Serial.print("IP: ");
     Serial.println(WiFi.localIP());
-    Serial.print("MAC: ");
-    Serial.println(WiFi.macAddress());
-    Serial.print("RSSI: ");
-    Serial.print(WiFi.RSSI());
-    Serial.println(" dBm");
   } else {
-    digitalWrite(LED_WIFI, LOW);  // Выключаем LED WiFi
-    Serial.println(">>> ОШИБКА: WiFi не подключен!");
+    Serial.println("✗ WiFi не подключен!");
   }
 }
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   delay(2000);
-  Serial.println("\n\n=== ESP32 Start ===");
+  Serial.println("\n\n=== ESP32 CO2 Monitor Start ===");
   
-  setupLEDs();  // Инициализируем LED
+  setupLEDs();
+  
+  // ТЕСТ ПИКАЛКИ ПРИ СТАРТЕ
+  Serial.println("\n>>> ТЕСТ ПИКАЛКИ <<<");
+  digitalWrite(BUZZER, HIGH);
+  delay(500);
+  digitalWrite(BUZZER, LOW);
+  delay(500);
+  Serial.println("✓ Тест пикалки завершен (должна была пищать 1 раза)\n");
   
   connectWiFi();
   
-  // I2C
-  Serial.println("Инициализация датчика...");
-  Wire.begin();
+  Serial.println("\nИнициализация I2C и датчика...");
+  Serial.printf("SDA: GPIO%d, SCL: GPIO%d\n", I2C_SDA, I2C_SCL);
+  
+  Wire.begin(I2C_SDA, I2C_SCL);
+  Wire.setClock(50000);
+  delay(500);
+  
+  // Сканирование I2C
+  Serial.println("Сканирование I2C шины...");
+  byte address;
+  int nDevices = 0;
+  
+  for(address = 1; address < 127; address++) {
+    Wire.beginTransmission(address);
+    byte error = Wire.endTransmission();
+    
+    if (error == 0) {
+      Serial.print("  ✓ Устройство найдено на адресе: 0x");
+      if (address < 16) Serial.print("0");
+      Serial.println(address, HEX);
+      nDevices++;
+    }
+  }
+  
+  if (nDevices == 0) {
+    Serial.println("\n✗✗✗ ОШИБКА: I2C устройства не найдены! ✗✗✗");
+    Serial.println("Проверьте подключение датчика:");
+    Serial.println("  - SDA датчика → GPIO21 ESP32");
+    Serial.println("  - SCL датчика → GPIO22 ESP32");
+    Serial.println("  - VCC датчика → 3.3V или 5V");
+    Serial.println("  - GND датчика → GND");
+  } else {
+    Serial.printf("✓ Найдено I2C устройств: %d\n", nDevices);
+  }
+  
   sensor.begin(Wire, SCD41_I2C_ADDR_62);
-  delay(100);
+  delay(500);
   sensor.wakeUp();
-  Serial.println("Датчик готов!");
-  Serial.println("===================\n");
+  delay(500);
+  
+  Serial.println("✓ Датчик готов!");
+  Serial.println("=================================\n");
 }
 
 void loop() {
-  Serial.println("--- Начало цикла измерения ---");
-  
-  if (WiFi.status() != WL_CONNECTED) {
-    digitalWrite(LED_WIFI, LOW);  // Выключаем LED WiFi
-    Serial.println(">>> WiFi отключен! Переподключение... <<<");
-    connectWiFi();
-    if (WiFi.status() != WL_CONNECTED) {
-      Serial.println(">>> Не удалось подключиться! Ждем 15 секунд...");
-      delay(15000);
-      return;
-    }
-  } else {
-    digitalWrite(LED_WIFI, HIGH);  // Включаем LED WiFi
-  }
+  Serial.println("╔════════════════════════════════╗");
+  Serial.println("║   Начало цикла измерения      ║");
+  Serial.println("╚════════════════════════════════╝");
   
   uint16_t co2;
   float temperature;
   float humidity;
   
-  Serial.println("Чтение данных с датчика...");
+  Serial.println("📊 Чтение данных с датчика...");
   error = sensor.measureAndReadSingleShot(co2, temperature, humidity);
   
   if (error != 0) {
-    Serial.print("ОШИБКА чтения датчика, код: ");
+    Serial.print("✗ ОШИБКА чтения датчика, код: ");
     Serial.println(error);
-    delay(5000);
+    Serial.println("⚠ Попытка сброса I2C...");
+    
+    Wire.end();
+    delay(1000);
+    Wire.begin(I2C_SDA, I2C_SCL);
+    Wire.setClock(50000);
+    delay(1000);
+    sensor.begin(Wire, SCD41_I2C_ADDR_62);
+    sensor.wakeUp();
+    delay(1000);
+    
+    Serial.println("Ожидание 10 секунд...\n");
+    delay(10000);
     return;
   }
   
-  Serial.printf("Температура: %.2f °C\n", temperature);
-  Serial.printf("Влажность: %.2f %%\n", humidity);
-  Serial.printf("CO₂: %u ppm\n", co2);
+  Serial.println("\n📈 РЕЗУЛЬТАТЫ ИЗМЕРЕНИЙ:");
+  Serial.printf("  🌡️  Температура: %.2f °C\n", temperature);
+  Serial.printf("  💧 Влажность: %.2f %%\n", humidity);
+  Serial.printf("  🫁 CO₂: %u ppm\n\n", co2);
   
-  // Обновляем LED индикацию CO2
   updateCO2LEDs(co2);
   
-  // Получим MAC ESP32
-  String mac = WiFi.macAddress();
-  Serial.print("MAC: ");
-  Serial.println(mac);
+  // WiFi и отправка данных
+  bool wifiConnected = (WiFi.status() == WL_CONNECTED);
   
-  // Создаём JSON
-  StaticJsonDocument<256> doc;
-  doc["MAC"] = mac;
-  doc["name"] = "ESP32 - #1";
-  doc["temp"] = temperature;
-  doc["hum"] = humidity;
-  doc["co2"] = co2;
-  
-  String jsonString;
-  serializeJson(doc, jsonString);
-  Serial.print("JSON: ");
-  Serial.println(jsonString);
-  
-  // Отправляем POST-запрос
-  HTTPClient http;
-  http.begin(serverUrl);
-  http.addHeader("Content-Type", "application/json");
-  http.setTimeout(10000);
-  
-  int httpResponseCode = http.POST(jsonString);
-  
-  if (httpResponseCode > 0) {
-    digitalWrite(LED_SERVER, HIGH);  // Включаем LED сервера
-    Serial.print("✓ УСПЕХ! Код ответа: ");
-    Serial.println(httpResponseCode);
-    Serial.print("Ответ сервера: ");
-    Serial.println(http.getString());
+  if (!wifiConnected) {
+    digitalWrite(LED_WIFI, LOW);
+    Serial.println("⚠ WiFi отключен, переподключение...");
+    connectWiFi();
+    wifiConnected = (WiFi.status() == WL_CONNECTED);
   } else {
-    digitalWrite(LED_SERVER, LOW);  // Выключаем LED сервера
-    Serial.print("✗ ОШИБКА HTTP: ");
-    Serial.println(httpResponseCode);
+    digitalWrite(LED_WIFI, HIGH);
   }
   
-  http.end();
+  if (wifiConnected) {
+    String mac = WiFi.macAddress();
+    
+    StaticJsonDocument<256> doc;
+    doc["MAC"] = mac;
+    doc["name"] = "ESP32 - #1";
+    doc["temp"] = temperature;
+    doc["hum"] = humidity;
+    doc["co2"] = co2;
+    
+    String jsonString;
+    serializeJson(doc, jsonString);
+    Serial.print("📤 Отправка: ");
+    Serial.println(jsonString);
+    
+    HTTPClient http;
+    http.begin(serverUrl);
+    http.addHeader("Content-Type", "application/json");
+    http.setTimeout(10000);
+    
+    int httpResponseCode = http.POST(jsonString);
+    
+    if (httpResponseCode > 0) {
+      digitalWrite(LED_SERVER, HIGH);
+      Serial.print("✓ Успешно отправлено! Код: ");
+      Serial.println(httpResponseCode);
+    } else {
+      digitalWrite(LED_SERVER, LOW);
+      Serial.print("✗ Ошибка HTTP: ");
+      Serial.println(httpResponseCode);
+    }
+    
+    http.end();
+  } else {
+    digitalWrite(LED_SERVER, LOW);
+    Serial.println("⚠ Данные не отправлены - нет WiFi");
+  }
   
-  Serial.println("Ожидание 15 секунд...");
-  Serial.println("==========================================\n");
-  delay(15000);
+  Serial.println("\n⏳ Ожидание 5 секунд...");
+  Serial.println("════════════════════════════════\n");
+  delay(5000);
 }
