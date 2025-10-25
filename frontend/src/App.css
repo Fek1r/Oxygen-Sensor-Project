@@ -5,7 +5,7 @@
 
 .header {
   flex-shrink: 0; /* фиксированная ширина, не сжимается */
-  height: 100vh; /* пусть тянется на всю высоту */
+  height: auto; /* пусть тянется на всю высоту */
   display: flex;
   flex-direction: column;
 }
