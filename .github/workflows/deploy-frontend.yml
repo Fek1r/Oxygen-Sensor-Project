@@ -34,7 +34,7 @@ jobs:
       - name: Build React app
         working-directory: ./frontend
         env:
-          REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL || 'http://localhost:8080' }}
+          REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL || 'http://192.168.2.170:8080' }}
           CI: false
         run: npm run build
 
