@@ -1,0 +1,120 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/backend
+
+jobs:
+  # Frontend deployment moved to deploy-frontend.yml workflow
+  # Use .github/workflows/deploy-frontend.yml for frontend deployment
+
+  # Backend Docker build and push
+  build-backend:
+    name: Build and Push Backend Docker Image
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # Backend deployment with Cloudflare Tunnel
+  deploy-backend:
+    name: Deploy Backend with Cloudflare Tunnel
+    runs-on: ubuntu-latest
+    needs: build-backend
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create deployment script
+        run: |
+          cat > deploy-backend.sh << 'EOF'
+          #!/bin/bash
+          set -e
+          
+          # Pull the latest image
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          
+          # Stop and remove existing container
+          docker stop oxygen-sensor-backend || true
+          docker rm oxygen-sensor-backend || true
+          
+          # Run new container with Cloudflare tunnel
+          docker run -d \
+            --name oxygen-sensor-backend \
+            --restart unless-stopped \
+            -p 8080:8080 \
+            -e ASPNETCORE_ENVIRONMENT=Production \
+            -e ConnectionStrings__PostgresConnection="${{ secrets.POSTGRES_CONNECTION_STRING }}" \
+            -e CLOUDFLARE_TUNNEL_TOKEN="${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}" \
+            -e AllowedOrigins__0="${{ secrets.FRONTEND_URL || 'https://oxygen-sensor-frontend.pages.dev' }}" \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          
+          echo "Backend deployed successfully!"
+          EOF
+          chmod +x deploy-backend.sh
+
+      - name: Display deployment instructions
+        run: |
+          echo "## Deployment Instructions" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Backend Docker Image" >> $GITHUB_STEP_SUMMARY
+          echo "Image: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### To deploy manually, run:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_STEP_SUMMARY
+          echo "docker run -d \\" >> $GITHUB_STEP_SUMMARY
+          echo "  --name oxygen-sensor-backend \\" >> $GITHUB_STEP_SUMMARY
+          echo "  --restart unless-stopped \\" >> $GITHUB_STEP_SUMMARY
+          echo "  -p 8080:8080 \\" >> $GITHUB_STEP_SUMMARY
+          echo "  -e ConnectionStrings__PostgresConnection=\"\$POSTGRES_CONNECTION_STRING\" \\" >> $GITHUB_STEP_SUMMARY
+          echo "  -e CLOUDFLARE_TUNNEL_TOKEN=\"\$CLOUDFLARE_TUNNEL_TOKEN\" \\" >> $GITHUB_STEP_SUMMARY
+          echo "  -e AllowedOrigins__0=\"\$FRONTEND_URL\" \\" >> $GITHUB_STEP_SUMMARY
+          echo "  ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY

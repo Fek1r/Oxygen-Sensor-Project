@@ -1,0 +1,23 @@
+# Cloudflare Tunnel Configuration
+# This file is a template for Cloudflare Tunnel setup
+# 
+# To set up Cloudflare Tunnel:
+# 1. Install cloudflared: https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/installation/
+# 2. Run: cloudflared tunnel login
+# 3. Run: cloudflared tunnel create oxygen-sensor-backend
+# 4. Create a config.yml file with the following content (adjust hostname and service URL):
+#
+# tunnel: oxygen-sensor-backend
+# credentials-file: /path/to/credentials.json
+#
+# ingress:
+#   - hostname: api.yourdomain.com
+#     service: http://localhost:8080
+#   - service: http_status:404
+
+# Alternative: Use Cloudflare Tunnel Token (recommended for Docker)
+# Get token from: https://one.dash.cloudflare.com/
+# Set as environment variable: CLOUDFLARE_TUNNEL_TOKEN
+
+# For Docker deployment, the tunnel is started automatically if CLOUDFLARE_TUNNEL_TOKEN is set
+# The Dockerfile includes cloudflared and will start the tunnel on container startup

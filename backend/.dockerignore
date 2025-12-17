@@ -1,0 +1,47 @@
+# Build outputs
+bin/
+obj/
+out/
+publish/
+
+# IDE files
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.local
+*.publishsettings
+
+# Database files
+*.db
+*.sqlite
+*.db-shm
+*.db-wal
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+README*
+
+# Test files
+**/test/
+**/tests/
+**/*Test*.cs
+**/*Tests*.cs
+
+# HTTP test files
+*.http

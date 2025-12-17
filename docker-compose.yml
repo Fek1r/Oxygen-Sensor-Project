@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: oxygen-sensor-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__PostgresConnection=Host=postgres;Port=5432;Database=sensordb;Username=postgres;Password=postgres
+      - AllowedOrigins__0=http://localhost:3000
+      - AllowedOrigins__1=http://localhost:3001
+      # Uncomment and set if using Cloudflare Tunnel
+      # - CLOUDFLARE_TUNNEL_TOKEN=your-tunnel-token-here
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - sensor-network
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: oxygen-sensor-postgres
+    environment:
+      - POSTGRES_DB=sensordb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - sensor-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  sensor-network:
+    driver: bridge
