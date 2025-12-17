@@ -35,47 +35,6 @@ jobs:
           CI: false
         run: npm run build
 
-      - name: Create Cloudflare Pages project (if not exists)
-        run: |
-          set -e
-          echo "Checking if project exists..."
-          
-          # Check if project exists
-          PROJECT_RESPONSE=$(curl -s -w "\n%{http_code}" -X GET \
-            "https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/pages/projects/oxygen-sensor-frontend" \
-            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
-            -H "Content-Type: application/json")
-          
-          HTTP_CODE=$(echo "$PROJECT_RESPONSE" | tail -n1)
-          RESPONSE_BODY=$(echo "$PROJECT_RESPONSE" | sed '$d')
-          
-          if [ "$HTTP_CODE" = "404" ] || echo "$RESPONSE_BODY" | grep -q '"success":false'; then
-            echo "Project does not exist, creating it..."
-            CREATE_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
-              "https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/pages/projects" \
-              -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
-              -H "Content-Type: application/json" \
-              -d '{"name":"oxygen-sensor-frontend","production_branch":"main"}')
-            
-            CREATE_HTTP_CODE=$(echo "$CREATE_RESPONSE" | tail -n1)
-            CREATE_BODY=$(echo "$CREATE_RESPONSE" | sed '$d')
-            
-            if [ "$CREATE_HTTP_CODE" = "200" ] || echo "$CREATE_BODY" | grep -q '"success":true'; then
-              echo "✅ Project created successfully"
-              echo "$CREATE_BODY"
-            else
-              echo "❌ Failed to create project. Response:"
-              echo "$CREATE_BODY"
-              echo "HTTP Code: $CREATE_HTTP_CODE"
-              echo ""
-              echo "⚠️  Please create the project manually in Cloudflare Dashboard:"
-              echo "   https://dash.cloudflare.com/ → Workers & Pages → Pages → Create a project"
-              exit 1
-            fi
-          else
-            echo "✅ Project already exists"
-          fi
-
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
