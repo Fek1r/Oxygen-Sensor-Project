@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  backend:
+    image: ghcr.io/Fek1r/Oxygen-Sensor-Project/backend:latest
+    container_name: oxygen-sensor-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - ConnectionStrings__PostgresConnection=${POSTGRES_CONNECTION_STRING:-Host=postgres;Port=5432;Database=postgres;Username=fek1r;Password=10021711}
+      - CLOUDFLARE_TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+      - AllowedOrigins__0=${FRONTEND_URL:-https://oxygen-sensor-frontend.pages.dev}
+      - ASPNETCORE_ENVIRONMENT=Production
+    # Для доступа к приватным образам GitHub Container Registry
+    # Сначала выполните: echo "GITHUB_TOKEN" | docker login ghcr.io -u Fek1r --password-stdin
+
+  # Опционально: PostgreSQL в том же compose (для тестирования)
+  # Для продакшена лучше использовать внешнюю БД
+  postgres:
+    image: postgres:16-alpine
+    container_name: oxygen-sensor-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=fek1r
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-10021711}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # Раскомментируйте, если хотите использовать локальную БД
+    # profiles:
+    #   - local-db
+
+volumes:
+  postgres_data:
