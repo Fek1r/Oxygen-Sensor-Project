@@ -3,8 +3,7 @@ name: Deploy Frontend to Cloudflare Pages
 on:
   push:
     branches:
-      - main
-      - dev
+      - feature/DeploDocker 
     paths:
       - 'frontend/**'
       - '.github/workflows/deploy-frontend.yml'
