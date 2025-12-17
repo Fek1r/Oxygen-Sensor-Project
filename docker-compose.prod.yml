@@ -1,8 +1,7 @@
-version: '3.8'
-
 services:
   backend:
-    image: ghcr.io/Fek1r/Oxygen-Sensor-Project/backend:latest
+    image: ghcr.io/fek1r/oxygen-sensor-project/backend:feature-deplodocker
+    platform: linux/amd64
     container_name: oxygen-sensor-backend
     restart: unless-stopped
     ports:

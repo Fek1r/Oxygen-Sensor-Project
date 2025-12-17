@@ -1,0 +1,40 @@
+═══════════════════════════════════════════════════════════════
+  ПРОСТЫЕ КОМАНДЫ ДЛЯ ЗАПУСКА БЭКЕНДА
+═══════════════════════════════════════════════════════════════
+
+ШАГ 1: Получите GitHub Token
+─────────────────────────────
+1. Откройте: https://github.com/settings/tokens
+2. Generate new token (classic)
+3. Поставьте галочку на "read:packages"
+4. Скопируйте токен
+
+ШАГ 2: Войдите в GitHub Container Registry
+────────────────────────────────────────────
+Замените YOUR_TOKEN на ваш токен из Шага 1:
+
+echo "YOUR_TOKEN" | docker login ghcr.io -u Fek1r --password-stdin
+
+ШАГ 3: Запустите контейнеры
+─────────────────────────────
+Выполните эти 3 команды:
+
+cat > .env << 'EOF'
+POSTGRES_CONNECTION_STRING=Host=postgres;Port=5432;Database=postgres;Username=fek1r;Password=10021711
+CLOUDFLARE_TUNNEL_TOKEN=eyJhIjoiYWEyZjdmYzVkZTAwNGU1NmU0YzAxODllZGJkZDZlZDciLCJ0IjoiODU5NjFiM2ItYjQ4Mi00NTU4LWFjNmUtZTFmNDA5NDhiMzcyIiwicyI6Ik1qUm1OVEV4TVRrdE56WTBZaTAwT0dJNExXSmxNbUV0T0RBMFpUVXdPVEJsTURSayJ9
+FRONTEND_URL=https://oxygen-sensor-frontend.pages.dev
+POSTGRES_PASSWORD=10021711
+EOF
+
+docker-compose -f docker-compose.prod.yml up -d
+
+docker ps
+
+═══════════════════════════════════════════════════════════════
+  ПРОВЕРКА
+═══════════════════════════════════════════════════════════════
+
+docker logs oxygen-sensor-backend
+curl http://localhost:8080/sensor/all
+
+═══════════════════════════════════════════════════════════════

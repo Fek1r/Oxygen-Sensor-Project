@@ -5,11 +5,15 @@
 #include <SensirionI2cScd4x.h>
 
 //Wifi
-const char* ssid = "Dark Network";
-const char* password = "111alah666!";
+const char* ssid = "2_2.4G";
+const char* password = "10021711";
 
 // Адрес сервера
-const char* serverUrl = "http://10.221.84.53:5245/sensor/receive";
+// ВАЖНО: Замените на IP адрес вашего Mac или URL через Cloudflare Tunnel
+// Вариант 1: Локальная сеть (IP адрес вашего Mac)
+const char* serverUrl = "http://192.168.2.170:8080/sensor/receive";
+// Вариант 2: Через Cloudflare Tunnel (если настроен)
+// const char* serverUrl = "https://api.yourdomain.com/sensor/receive";
 
 // I2C пины
 const int I2C_SDA = 21;
