@@ -85,15 +85,6 @@ const SensorPage = () => {
     };
   }, [mac, period, baseUrl]);
 
-  // ✅ Скачивание CSV
-  const handleDownloadCsv = () => {
-    const params = new URLSearchParams({ period });
-    if (mac) params.append("mac", mac);
-    
-    const url = `${baseUrl}/sensor/export/csv?${params}`;
-    window.open(url, "_blank");
-  };
-
   if (error) {
     return (
       <div className="sensor-page">
