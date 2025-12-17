@@ -35,6 +35,26 @@ jobs:
           CI: false
         run: npm run build
 
+      - name: Create Cloudflare Pages project (if not exists)
+        run: |
+          # Check if project exists, if not create it
+          PROJECT_RESPONSE=$(curl -s -X GET \
+            "https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/pages/projects/oxygen-sensor-frontend" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            -H "Content-Type: application/json" || echo "{}")
+          
+          if echo "$PROJECT_RESPONSE" | grep -q '"success":false'; then
+            echo "Project does not exist, creating it..."
+            curl -s -X POST \
+              "https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/pages/projects" \
+              -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+              -H "Content-Type: application/json" \
+              -d '{"name":"oxygen-sensor-frontend","production_branch":"main"}'
+            echo "Project created successfully"
+          else
+            echo "Project already exists"
+          fi
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
