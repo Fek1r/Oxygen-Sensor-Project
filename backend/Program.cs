@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+\using Microsoft.EntityFrameworkCore;
 using SensorApi.Data;
 using SensorApi.Services;
 using System.Net;
@@ -7,67 +7,86 @@ using System.Net.NetworkInformation;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// 1. Настройка для PostgreSQL (Legacy Timestamp)
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
-// строка подключения к PostgreSQL
+// 2. Подключение к базе данных
 var connectionString = builder.Configuration.GetConnectionString("PostgresConnection")
     ?? "Host=localhost;Port=5432;Database=postgres;Username=fek1r;Password=10021711";
 
 builder.Services.AddDbContext<SensorDbContext>(options =>
     options.UseNpgsql(connectionString));
 
+// 3. Регистрация сервисов
 builder.Services.AddScoped<ISensorService, SensorService>();
-
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// ✅ Разрешаем CORS для фронтенда
-var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()
-    ?? new[] { "http://localhost:3000" };
-
+// 4. ✅ ИСПРАВЛЕНИЕ CORS (Разрешаем всё для разработки)
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", policy =>
+    options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins(allowedOrigins)
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        policy.AllowAnyOrigin()   // Разрешает запросы с любого IP (192.168.x.x, localhost и т.д.)
+              .AllowAnyHeader()   // Разрешает любые заголовки
+              .AllowAnyMethod();  // Разрешает GET, POST, PUT и т.д.
     });
 });
 
+// Если нужно жестко задать порт (опционально), раскомментируйте строку ниже:
+// builder.WebHost.UseUrls("http://*:8080");
+
 var app = builder.Build();
 
-// Автоматическое создание базы
+// 5. Автоматическое создание базы данных
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<SensorDbContext>();
-    db.Database.EnsureCreated();
+    try 
+    {
+        db.Database.EnsureCreated();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Ошибка при создании БД: {ex.Message}");
+    }
 }
 
+// 6. Настройка Pipeline (порядок важен!)
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// ⛔️ ОТКЛЮЧЕНО для локальной сети (чтобы не ломать HTTP запросы от React)
+// app.UseHttpsRedirection();
 
-// ✅ Подключаем CORS ДО контроллеров
-app.UseCors("AllowFrontend");
+// ✅ CORS включаем ДО авторизации и контроллеров
+app.UseCors("AllowAll");
 
 app.UseAuthorization();
 app.MapControllers();
 
-// ✅ Логирование адресов при запуске
+// 7. Логирование адресов при запуске (Ваш код)
 app.Lifetime.ApplicationStarted.Register(() =>
 {
     var addresses = app.Urls;
     var allIPs = GetAllLocalIPAddresses();
     
     Console.WriteLine("\n" + new string('=', 60));
-    Console.WriteLine("🚀 Сервер успешно запущен!");
+    Console.WriteLine("🚀 Сервер успешно запущен и готов принимать запросы!");
     Console.WriteLine(new string('=', 60));
+    
+    // Если адреса не заданы явно, Kestrel слушает стандартные, выведем IP
+    if (!addresses.Any())
+    {
+         foreach (var ip in allIPs)
+         {
+             Console.WriteLine($"📡 http://{ip}:8080 (примерный адрес)");
+         }
+    }
     
     foreach (var address in addresses)
     {
@@ -75,12 +94,9 @@ app.Lifetime.ApplicationStarted.Register(() =>
         var port = uri.Port;
         var scheme = uri.Scheme;
         
-        // Если слушаем на 0.0.0.0 или ::, показываем все доступные IP
-        if (uri.Host == "0.0.0.0" || uri.Host == "::")
+        if (uri.Host == "0.0.0.0" || uri.Host == "[::]" || uri.Host == "::")
         {
             Console.WriteLine($"📡 Сервер слушает на всех интерфейсах (порт {port}):");
-            Console.WriteLine($"   {scheme}://localhost:{port}");
-            
             foreach (var ip in allIPs)
             {
                 Console.WriteLine($"   {scheme}://{ip}:{port}");
@@ -93,20 +109,18 @@ app.Lifetime.ApplicationStarted.Register(() =>
     }
     
     Console.WriteLine(new string('=', 60));
-    Console.WriteLine("📋 Доступные эндпоинты:");
+    Console.WriteLine("📋 Доступные эндпоинты для проверки:");
+    Console.WriteLine("   GET  /sensor/devices  - Список устройств (для React)");
     Console.WriteLine("   POST /sensor/receive  - Прием данных от ESP32");
-    Console.WriteLine("   GET  /sensor/latest   - Последние данные");
-    Console.WriteLine("   GET  /sensor/all      - Все данные (последние 50)");
     Console.WriteLine(new string('=', 60) + "\n");
 });
 
 app.Run();
 
-// Получить все локальные IP-адреса
+// --- Вспомогательный метод для получения IP ---
 static List<string> GetAllLocalIPAddresses()
 {
     var ipAddresses = new List<string>();
-    
     try
     {
         var interfaces = NetworkInterface.GetAllNetworkInterfaces()
@@ -127,7 +141,7 @@ static List<string> GetAllLocalIPAddresses()
     }
     catch
     {
-        // Fallback метод
+        // Fallback
         try
         {
             var host = Dns.GetHostEntry(Dns.GetHostName());
@@ -141,6 +155,5 @@ static List<string> GetAllLocalIPAddresses()
         }
         catch { }
     }
-    
     return ipAddresses;
 }
