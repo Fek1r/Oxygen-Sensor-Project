@@ -11,43 +11,44 @@ const LoginPage = ({ onLogin }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    // Verification logic
     if (username === "Admin" && password === "12345678") {
       setError("");
       onLogin();
       navigate("/");
     } else {
-      setError("Неверный логин или пароль");
+      setError("Invalid username or password");
     }
   };
 
   return (
     <div className="login-page">
       <div className="login-box">
-        <h1>Вход в систему</h1>
+        <h1>System Login</h1>
         <form onSubmit={handleSubmit}>
-          <label htmlFor="username">Логин</label>
+          <label htmlFor="username">Username</label>
           <input
             type="text"
             id="username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            placeholder="Введите логин"
+            placeholder="Enter username"
             required
           />
 
-          <label htmlFor="password">Пароль</label>
+          <label htmlFor="password">Password</label>
           <input
             type="password"
             id="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Введите пароль"
+            placeholder="Enter password"
             required
           />
 
           {error && <p className="error">{error}</p>}
 
-          <button type="submit" className="login-btn">Войти</button>
+          <button type="submit" className="login-btn">Login</button>
         </form>
       </div>
     </div>

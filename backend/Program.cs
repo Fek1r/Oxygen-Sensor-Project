@@ -11,7 +11,7 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 // строка подключения к PostgreSQL
 var connectionString = builder.Configuration.GetConnectionString("PostgresConnection")
-    ?? "Host=localhost;Port=5433;Database=postgres;Username=postgres;Password=10021711";
+    ?? "Host=localhost;Port=5432;Database=postgres;Username=fek1r;Password=10021711";
 
 builder.Services.AddDbContext<SensorDbContext>(options =>
     options.UseNpgsql(connectionString));

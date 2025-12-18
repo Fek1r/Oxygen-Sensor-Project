@@ -24,10 +24,10 @@ const Header = ({ onLogout }) => {
       <nav>
         <ul>
           <li onClick={() => navigate("/")} style={{ cursor: "pointer" }}>
-            Главная
+            Home
           </li>
           <li onClick={handleLogoutClick} style={{ cursor: "pointer", color: "#e74c3c" }}>
-            Выход
+            Log out
           </li>
         </ul>
       </nav>

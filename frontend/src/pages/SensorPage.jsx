@@ -27,22 +27,22 @@ const SensorPage = () => {
       try {
         setLoading(true);
         
-        // ✅ Используем новый эндпоинт /sensor/history
         const params = new URLSearchParams({ period });
         if (mac) params.append("mac", mac);
         
         const res = await fetch(`${baseUrl}/sensor/history?${params}`);
-        if (!res.ok) throw new Error("Ошибка: " + res.status);
+        if (!res.ok) throw new Error("Error: " + res.status);
         
         const json = await res.json();
         
-        // Форматируем данные для графика
+        // Format data for the chart (using US locale for time)
         const formatted = json.data.map(item => ({
-          time: new Date(item.timestamp).toLocaleTimeString("ru-RU", {
+          time: new Date(item.timestamp).toLocaleTimeString("en-US", {
             hour: "2-digit",
-            minute: "2-digit"
+            minute: "2-digit",
+            hour12: false // Можно оставить true, если нужен формат AM/PM
           }),
-          fullTime: new Date(item.timestamp).toLocaleString("ru-RU"),
+          fullTime: new Date(item.timestamp).toLocaleString("en-US"),
           temperature: item.temp,
           humidity: item.hum,
           co2: item.co2,
@@ -52,7 +52,6 @@ const SensorPage = () => {
         
         setData(formatted);
         
-        // Последнее значение для карточки
         if (formatted.length > 0) {
           setLatest({
             mac: formatted[formatted.length - 1].mac,
@@ -66,7 +65,7 @@ const SensorPage = () => {
         setError(null);
         setLoading(false);
       } catch (err) {
-        console.error("Ошибка загрузки данных:", err);
+        console.error("Data loading error:", err);
         setError(err.message);
         setLoading(false);
       }
@@ -74,10 +73,9 @@ const SensorPage = () => {
 
     fetchData();
     
-    // Автообновление только в режиме live
     let interval;
     if (period === "live") {
-      interval = setInterval(fetchData, 15000); // каждые 15 сек
+      interval = setInterval(fetchData, 15000);
     }
     
     return () => {
@@ -85,7 +83,6 @@ const SensorPage = () => {
     };
   }, [mac, period, baseUrl]);
 
-  // ✅ Скачивание CSV
   const handleDownloadCsv = () => {
     const params = new URLSearchParams({ period });
     if (mac) params.append("mac", mac);
@@ -97,7 +94,7 @@ const SensorPage = () => {
   if (error) {
     return (
       <div className="sensor-page">
-        <h1>Ошибка загрузки данных</h1>
+        <h1>Data Loading Error</h1>
         <p style={{ color: "red" }}>{error}</p>
       </div>
     );
@@ -108,43 +105,42 @@ const SensorPage = () => {
       <div className="header-controls">
         <h1>
           {mac
-            ? `Данные устройства ${latest?.name || mac}`
-            : "Мониторинг датчиков"}
+            ? `Data for ${latest?.name || mac}`
+            : "Sensor Monitoring"}
         </h1>
         
-        {/* ✅ Кнопки выбора периода */}
         <div className="time-filters">
           <button 
             className={period === "live" ? "active" : ""}
             onClick={() => setPeriod("live")}
           >
-            🔴 Реал-тайм
+            🔴 Live
           </button>
           <button 
             className={period === "hour" ? "active" : ""}
             onClick={() => setPeriod("hour")}
           >
-            📊 Час
+            📊 Hour
           </button>
           <button 
             className={period === "day" ? "active" : ""}
             onClick={() => setPeriod("day")}
           >
-            📅 День
+            📅 Day
           </button>
           <button 
             className={period === "week" ? "active" : ""}
             onClick={() => setPeriod("week")}
           >
-            📆 Неделя
+            📆 Week
           </button>
         </div>
       </div>
 
-      {loading && <div className="loading">Загрузка данных...</div>}
+      {loading && <div className="loading">Loading data...</div>}
 
       {data.length === 0 && !loading && (
-        <div className="no-data">Нет данных за выбранный период</div>
+        <div className="no-data">No data found for the selected period</div>
       )}
 
       {data.length > 0 && (
@@ -160,14 +156,12 @@ const SensorPage = () => {
                   height={80}
                 />
                 
-                {/* Левая ось Y для температуры и влажности */}
                 <YAxis
                   yAxisId="left"
                   label={{ value: '°C / %', angle: -90, position: 'insideLeft' }}
                   domain={[0, 100]}
                 />
                 
-                {/* Правая ось Y для CO₂ */}
                 <YAxis
                   yAxisId="right"
                   orientation="right"
@@ -178,13 +172,13 @@ const SensorPage = () => {
                 <Tooltip 
                   content={({ payload }) => {
                     if (!payload || !payload.length) return null;
-                    const data = payload[0].payload;
+                    const itemData = payload[0].payload;
                     return (
                       <div className="custom-tooltip">
-                        <p><strong>{data.fullTime}</strong></p>
-                        <p>🌡️ Температура: {data.temperature?.toFixed(1)} °C</p>
-                        <p>💧 Влажность: {data.humidity?.toFixed(1)} %</p>
-                        <p>🌫️ CO₂: {data.co2} ppm</p>
+                        <p><strong>{itemData.fullTime}</strong></p>
+                        <p>🌡️ Temperature: {itemData.temperature?.toFixed(1)} °C</p>
+                        <p>💧 Humidity: {itemData.humidity?.toFixed(1)} %</p>
+                        <p>🌫️ CO₂: {itemData.co2} ppm</p>
                       </div>
                     );
                   }}
@@ -198,7 +192,7 @@ const SensorPage = () => {
                   dataKey="temperature"
                   stroke="#0077b6"
                   strokeWidth={2}
-                  name="Температура (°C)"
+                  name="Temperature (°C)"
                   dot={{ r: 3 }}
                 />
                 <Line
@@ -207,7 +201,7 @@ const SensorPage = () => {
                   dataKey="humidity"
                   stroke="#ff7f0e"
                   strokeWidth={2}
-                  name="Влажность (%)"
+                  name="Humidity (%)"
                   dot={{ r: 3 }}
                 />
                 <Line
@@ -225,11 +219,11 @@ const SensorPage = () => {
 
           {latest && (
             <div className="latest-data">
-              <h3>Последние показания</h3>
-              <p><strong>MAC:</strong> {latest.mac || 'Не указан'}</p>
-              {latest.name && <p><strong>Название:</strong> {latest.name}</p>}
-              <p><strong>Температура:</strong> {Math.round(latest.temp)} °C</p>
-              <p><strong>Влажность:</strong> {Math.round(latest.hum)} %</p>
+              <h3>Latest Readings</h3>
+              <p><strong>MAC:</strong> {latest.mac || 'N/A'}</p>
+              {latest.name && <p><strong>Name:</strong> {latest.name}</p>}
+              <p><strong>Temperature:</strong> {Math.round(latest.temp)} °C</p>
+              <p><strong>Humidity:</strong> {Math.round(latest.hum)} %</p>
               <p><strong>CO₂:</strong> {latest.co2} ppm</p>
             </div>
           )}

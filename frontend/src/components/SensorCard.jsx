@@ -11,16 +11,16 @@ const SensorCard = ({ title, description, extraInfo, isOnline, onSelect }) => {
       <div className="card-header">
         <h3>{title}</h3>
         <span className={`status-badge ${isOnline ? 'online' : 'offline'}`}>
-          {isOnline ? '🟢 Онлайн' : '🔴 Оффлайн'}
+          {isOnline ? '🟢 Online' : '🔴 Offline'}
         </span>
       </div>
       <p className="description">{description}</p>
       {extraInfo && <p className="extra-info">{extraInfo}</p>}
       {isOnline ? (
-        <button className="connect-button">Подключить</button>
+        <button className="connect-button">Conect</button>
       ) : (
         <button className="connect-button disabled" disabled>
-          Недоступно
+          Dissable
         </button>
       )}
     </div>
