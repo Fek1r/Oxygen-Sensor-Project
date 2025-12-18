@@ -45,7 +45,10 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<SensorDbContext>();
     try 
     {
-        db.Database.EnsureCreated();
+        // Используем Migrate() вместо EnsureCreated().
+        // Migrate() создает базу (если нет) и накатывает миграции.
+        // Это безопасный аналог "CREATE TABLE IF NOT EXISTS" для всех таблиц.
+        db.Database.Migrate();
     }
     catch (Exception ex)
     {
