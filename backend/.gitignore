@@ -26,7 +26,8 @@ packages/
 .nuget/
 
 # EF Core Migrations history
-Migrations/
+# EF Core Migrations history
+# Migrations/ (We need this for deployment!)
 
 # Logs
 *.log
