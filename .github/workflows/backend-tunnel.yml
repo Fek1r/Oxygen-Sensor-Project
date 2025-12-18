@@ -2,6 +2,9 @@ name: Backend Quick Tunnel
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - feature/DeploDocker
 
 jobs:
   tunnel:
