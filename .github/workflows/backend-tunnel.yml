@@ -1,0 +1,44 @@
+name: Backend Quick Tunnel
+
+on:
+  workflow_dispatch:
+
+jobs:
+  tunnel:
+    runs-on: ubuntu-latest
+    name: Build and Expose Backend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Cloudflared
+        run: |
+          curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+          sudo dpkg -i cloudflared.deb
+
+      - name: Start Docker Services
+        env:
+          # We generate a self-contained connection string for the sidecar DB
+          POSTGRES_CONNECTION_STRING: "Host=postgres;Port=5432;Database=postgres;Username=fek1r;Password=postgres"
+          POSTGRES_PASSWORD: "postgres"
+        run: |
+          # Use the prod compose file which has env var support
+          # We need to explicitly build the backend context because the image name in prod.yml is for registry
+          docker compose -f docker-compose.prod.yml build backend
+          
+          # Start services
+          docker compose -f docker-compose.prod.yml up -d
+
+
+      - name: Wait for Backend to be Ready
+        run: |
+          echo "Waiting for services to be healthy..."
+          sleep 10
+          docker compose logs backend
+
+      - name: Start Quick Tunnel
+        run: |
+          echo "Starting Cloudflare Tunnel..."
+          echo "Look for the URL below (e.g., https://....trycloudflare.com)"
+          # We run directly against localhost:8080 because docker-compose maps it there
+          cloudflared tunnel --url http://localhost:8080

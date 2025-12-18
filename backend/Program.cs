@@ -32,7 +32,8 @@ builder.Services.AddCors(options =>
         // Разрешаем любой источник. В Production лучше использовать .WithOrigins()
         policy.AllowAnyOrigin()   
               .AllowAnyHeader()   
-              .AllowAnyMethod();  
+              .AllowAnyMethod();
+
     });
 });
 

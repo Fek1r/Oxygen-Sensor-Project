@@ -18,14 +18,8 @@ RUN dotnet publish "SensorApi.csproj" -c Release -o /app/publish /p:UseAppHost=f
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 
-# Install Cloudflare tunnel (cloudflared)
-RUN apt-get update && \
-    apt-get install -y wget && \
-    wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb && \
-    dpkg -i cloudflared-linux-amd64.deb && \
-    rm cloudflared-linux-amd64.deb && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+# Cloudflare tunnel installation removed (running on host)
+
 
 # Copy published app
 COPY --from=publish /app/publish .
